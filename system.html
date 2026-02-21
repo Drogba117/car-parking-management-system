@@ -1,0 +1,1167 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PARKOS — Smart Parking System</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Barlow+Condensed:wght@300;400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0c0f;
+    --surface: #111418;
+    --border: #1e2530;
+    --accent: #00ff88;
+    --accent2: #ff6b35;
+    --warn: #ffcc00;
+    --text: #e8edf5;
+    --muted: #4a5568;
+    --free: #00ff88;
+    --occupied: #ff4444;
+    --reserved: #ffcc00;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Barlow Condensed', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* GRID BG */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,255,136,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,255,136,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* HEADER */
+  header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(10,12,15,0.92);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+  }
+
+  .logo {
+    font-family: 'Space Mono', monospace;
+    font-size: 1.4rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .logo-dot {
+    width: 8px; height: 8px;
+    background: var(--accent);
+    border-radius: 50%;
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.7); }
+  }
+
+  .header-stats {
+    display: flex;
+    gap: 2rem;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+  }
+
+  .stat-item { display: flex; flex-direction: column; align-items: center; }
+  .stat-val { font-size: 1.2rem; font-weight: 700; color: var(--accent); line-height: 1; }
+  .stat-lbl { color: var(--muted); font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.1em; }
+
+  .time-display {
+    font-family: 'Space Mono', monospace;
+    font-size: 1rem;
+    color: var(--muted);
+    font-weight: 700;
+  }
+
+  /* MAIN LAYOUT */
+  main {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    grid-template-rows: auto 1fr;
+    gap: 0;
+    height: calc(100vh - 64px);
+  }
+
+  /* TOOLBAR */
+  .toolbar {
+    grid-column: 1 / -1;
+    padding: 1rem 2rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+
+  .toolbar-title {
+    font-size: 1.8rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text);
+    margin-right: auto;
+  }
+
+  .toolbar-title span { color: var(--accent); }
+
+  .btn {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 0.5rem 1.2rem;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn:hover { border-color: var(--accent); color: var(--accent); }
+  .btn.active { border-color: var(--accent); color: var(--accent); background: rgba(0,255,136,0.07); }
+
+  .filter-group { display: flex; gap: 4px; }
+
+  /* PARKING MAP */
+  .map-area {
+    padding: 1.5rem 2rem;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  .floor-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .floor-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .parking-floor {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .parking-row {
+    display: flex;
+    gap: 0.4rem;
+    align-items: center;
+  }
+
+  .row-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--muted);
+    width: 16px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  .drive-lane {
+    height: 16px;
+    background: rgba(255,255,255,0.02);
+    border: 1px dashed var(--border);
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .drive-lane-text {
+    font-size: 0.5rem;
+    color: var(--border);
+    font-family: 'Space Mono', monospace;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+  }
+
+  /* PARKING SPOT */
+  .spot {
+    width: 48px;
+    height: 72px;
+    border: 1px solid;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.15s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    flex-shrink: 0;
+  }
+
+  .spot.free {
+    border-color: rgba(0,255,136,0.3);
+    background: rgba(0,255,136,0.04);
+  }
+
+  .spot.free:hover {
+    border-color: var(--free);
+    background: rgba(0,255,136,0.12);
+    transform: scale(1.05);
+    z-index: 10;
+    box-shadow: 0 0 20px rgba(0,255,136,0.3);
+  }
+
+  .spot.occupied {
+    border-color: rgba(255,68,68,0.4);
+    background: rgba(255,68,68,0.08);
+  }
+
+  .spot.reserved {
+    border-color: rgba(255,204,0,0.4);
+    background: rgba(255,204,0,0.06);
+  }
+
+  .spot.selected {
+    border-color: var(--accent);
+    background: rgba(0,255,136,0.15);
+    box-shadow: 0 0 30px rgba(0,255,136,0.4);
+    transform: scale(1.08);
+    z-index: 20;
+  }
+
+  .spot-id {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.55rem;
+    font-weight: 700;
+    color: var(--muted);
+  }
+
+  .spot.free .spot-id { color: rgba(0,255,136,0.6); }
+  .spot.selected .spot-id { color: var(--accent); }
+
+  .car-icon {
+    font-size: 1.1rem;
+    line-height: 1;
+  }
+
+  .spot-indicator {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--free);
+  }
+
+  .spot.occupied .spot-indicator { background: var(--occupied); }
+  .spot.reserved .spot-indicator { background: var(--reserved); }
+
+  /* EV indicator */
+  .ev-badge {
+    position: absolute;
+    top: 3px;
+    right: 3px;
+    font-size: 0.45rem;
+    background: rgba(0,255,136,0.2);
+    color: var(--accent);
+    padding: 1px 3px;
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+  }
+
+  .spot.occupied .ev-badge { background: rgba(255,68,68,0.2); color: var(--occupied); }
+
+  /* SIDEBAR */
+  .sidebar {
+    border-left: 1px solid var(--border);
+    background: var(--surface);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .sidebar-section {
+    padding: 1.2rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .sidebar-section:last-child { border-bottom: none; flex: 1; overflow-y: auto; }
+
+  .section-title {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+    margin-bottom: 1rem;
+  }
+
+  /* OCCUPANCY BARS */
+  .occupancy-bar {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 0.8rem;
+  }
+
+  .occ-row { display: flex; align-items: center; gap: 0.7rem; }
+
+  .occ-label {
+    font-size: 0.75rem;
+    color: var(--muted);
+    width: 45px;
+    flex-shrink: 0;
+    letter-spacing: 0.02em;
+  }
+
+  .occ-track {
+    flex: 1;
+    height: 6px;
+    background: rgba(255,255,255,0.05);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .occ-fill {
+    height: 100%;
+    transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .occ-val {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    font-weight: 700;
+    width: 28px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  /* SELECTED SPOT INFO */
+  .spot-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+  }
+
+  .spot-info-header {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+  }
+
+  .spot-number {
+    font-family: 'Space Mono', monospace;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--accent);
+    line-height: 1;
+  }
+
+  .spot-status-badge {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.25rem 0.6rem;
+    border: 1px solid;
+  }
+
+  .status-free { color: var(--free); border-color: var(--free); background: rgba(0,255,136,0.1); }
+  .status-occupied { color: var(--occupied); border-color: var(--occupied); background: rgba(255,68,68,0.1); }
+  .status-reserved { color: var(--reserved); border-color: var(--reserved); background: rgba(255,204,0,0.1); }
+
+  .info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.6rem;
+  }
+
+  .info-cell {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid var(--border);
+    padding: 0.6rem;
+  }
+
+  .info-cell-label {
+    font-size: 0.6rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.2rem;
+    font-family: 'Space Mono', monospace;
+  }
+
+  .info-cell-val {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .btn-reserve {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 0.8rem;
+    border: 1px solid var(--accent);
+    background: rgba(0,255,136,0.1);
+    color: var(--accent);
+    cursor: pointer;
+    width: 100%;
+    transition: all 0.2s;
+    margin-top: 0.5rem;
+  }
+
+  .btn-reserve:hover {
+    background: rgba(0,255,136,0.2);
+    box-shadow: 0 0 20px rgba(0,255,136,0.2);
+  }
+
+  .btn-reserve:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+    border-color: var(--muted);
+    color: var(--muted);
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .no-selection {
+    color: var(--muted);
+    font-size: 0.85rem;
+    text-align: center;
+    padding: 2rem 0;
+    line-height: 1.6;
+  }
+
+  .no-selection span {
+    display: block;
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    opacity: 0.3;
+  }
+
+  /* ACTIVITY FEED */
+  .activity-feed {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .activity-item {
+    display: flex;
+    gap: 0.7rem;
+    align-items: flex-start;
+    padding: 0.5rem;
+    background: rgba(255,255,255,0.02);
+    border-left: 2px solid transparent;
+    font-size: 0.78rem;
+    animation: slideIn 0.3s ease;
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(-10px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  .activity-item.entry { border-color: var(--occupied); }
+  .activity-item.exit { border-color: var(--free); }
+  .activity-item.reserved { border-color: var(--reserved); }
+
+  .activity-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    margin-top: 3px;
+    flex-shrink: 0;
+  }
+
+  .entry .activity-dot { background: var(--occupied); }
+  .exit .activity-dot { background: var(--free); }
+  .activity-item.reserved .activity-dot { background: var(--reserved); }
+
+  .activity-text { color: var(--text); line-height: 1.4; }
+  .activity-time {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--muted);
+    margin-left: auto;
+    flex-shrink: 0;
+    padding-top: 2px;
+  }
+
+  /* LEGEND */
+  .legend {
+    display: flex;
+    gap: 1.2rem;
+    align-items: center;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.7rem;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .legend-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+  }
+
+  /* SEARCH */
+  .search-input {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.75rem;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 0.5rem 1rem;
+    outline: none;
+    width: 180px;
+    transition: border-color 0.2s;
+  }
+
+  .search-input:focus { border-color: var(--accent); }
+  .search-input::placeholder { color: var(--muted); }
+
+  /* MINI CHART */
+  .chart-area {
+    height: 60px;
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    gap: 3px;
+    padding-top: 4px;
+  }
+
+  .chart-bar {
+    flex: 1;
+    background: rgba(0,255,136,0.15);
+    border-top: 1px solid rgba(0,255,136,0.4);
+    transition: height 1s ease;
+    min-height: 2px;
+  }
+
+  .chart-bar:hover { background: rgba(0,255,136,0.3); }
+
+  .chart-labels {
+    display: flex;
+    gap: 3px;
+    margin-top: 4px;
+  }
+
+  .chart-label {
+    flex: 1;
+    text-align: center;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.45rem;
+    color: var(--muted);
+  }
+
+  /* MODAL */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.8);
+    backdrop-filter: blur(8px);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+  }
+
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--accent);
+    padding: 2rem;
+    width: 380px;
+    box-shadow: 0 0 60px rgba(0,255,136,0.15);
+    transform: translateY(20px);
+    transition: transform 0.2s;
+  }
+
+  .modal-overlay.open .modal { transform: translateY(0); }
+
+  .modal-title {
+    font-family: 'Space Mono', monospace;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .modal-body { font-size: 0.85rem; color: var(--muted); line-height: 1.6; margin-bottom: 1.5rem; }
+  .modal-detail { color: var(--text); font-weight: 600; }
+
+  .modal-actions { display: flex; gap: 0.5rem; }
+
+  .btn-confirm {
+    flex: 1;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 0.7rem;
+    border: 1px solid var(--accent);
+    background: rgba(0,255,136,0.15);
+    color: var(--accent);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-confirm:hover { background: rgba(0,255,136,0.25); }
+
+  .btn-cancel {
+    flex: 1;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 0.7rem;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-cancel:hover { border-color: var(--muted); color: var(--text); }
+
+  /* SUCCESS TOAST */
+  .toast {
+    position: fixed;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: var(--surface);
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.8rem 1.5rem;
+    z-index: 2000;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 0 30px rgba(0,255,136,0.2);
+  }
+
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  @media (max-width: 900px) {
+    main { grid-template-columns: 1fr; grid-template-rows: auto 1fr auto; }
+    .sidebar { border-left: none; border-top: 1px solid var(--border); max-height: 300px; }
+    .header-stats { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-dot"></div>
+    PARKOS
+  </div>
+  <div class="header-stats">
+    <div class="stat-item">
+      <div class="stat-val" id="hdr-free">—</div>
+      <div class="stat-lbl">Available</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-val" id="hdr-occ" style="color:var(--occupied)">—</div>
+      <div class="stat-lbl">Occupied</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-val" id="hdr-rev" style="color:var(--reserved)">—</div>
+      <div class="stat-lbl">Reserved</div>
+    </div>
+  </div>
+  <div class="time-display" id="time-display">--:--:--</div>
+</header>
+
+<main>
+  <div class="toolbar">
+    <div class="toolbar-title">LEVEL <span id="active-floor">A</span> — PARKING MAP</div>
+
+    <div class="filter-group" id="floor-btns">
+      <button class="btn active" onclick="setFloor('A', this)">Floor A</button>
+      <button class="btn" onclick="setFloor('B', this)">Floor B</button>
+      <button class="btn" onclick="setFloor('C', this)">Floor C</button>
+    </div>
+
+    <div class="filter-group">
+      <button class="btn active" id="filter-all" onclick="setFilter('all', this)">All</button>
+      <button class="btn" id="filter-free" onclick="setFilter('free', this)">Free</button>
+      <button class="btn" id="filter-ev" onclick="setFilter('ev', this)">EV Only</button>
+    </div>
+
+    <input type="text" class="search-input" placeholder="Search spot..." id="search-input" oninput="searchSpot(this.value)">
+
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:var(--free)"></div>Free</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--occupied)"></div>Occupied</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--reserved)"></div>Reserved</div>
+    </div>
+  </div>
+
+  <div class="map-area" id="map-area"></div>
+
+  <div class="sidebar">
+    <!-- Spot Info -->
+    <div class="sidebar-section" style="flex-shrink:0">
+      <div class="section-title">Selected Spot</div>
+      <div id="spot-detail">
+        <div class="no-selection">
+          <span>🅿</span>
+          Click on a free spot<br>to see details & reserve
+        </div>
+      </div>
+    </div>
+
+    <!-- Occupancy -->
+    <div class="sidebar-section" style="flex-shrink:0">
+      <div class="section-title">Occupancy by Floor</div>
+      <div class="occupancy-bar">
+        <div class="occ-row">
+          <div class="occ-label">Floor A</div>
+          <div class="occ-track"><div class="occ-fill" id="occ-a" style="background:var(--accent)"></div></div>
+          <div class="occ-val" id="occ-a-val" style="color:var(--accent)">—</div>
+        </div>
+        <div class="occ-row">
+          <div class="occ-label">Floor B</div>
+          <div class="occ-track"><div class="occ-fill" id="occ-b" style="background:var(--warn)"></div></div>
+          <div class="occ-val" id="occ-b-val" style="color:var(--warn)">—</div>
+        </div>
+        <div class="occ-row">
+          <div class="occ-label">Floor C</div>
+          <div class="occ-track"><div class="occ-fill" id="occ-c" style="background:var(--accent2)"></div></div>
+          <div class="occ-val" id="occ-c-val" style="color:var(--accent2)">—</div>
+        </div>
+      </div>
+
+      <!-- Hourly chart -->
+      <div class="section-title" style="margin-top:0.8rem">Hourly Traffic (today)</div>
+      <div class="chart-area" id="chart-area"></div>
+      <div class="chart-labels" id="chart-labels"></div>
+    </div>
+
+    <!-- Activity Feed -->
+    <div class="sidebar-section">
+      <div class="section-title">Live Activity</div>
+      <div class="activity-feed" id="activity-feed"></div>
+    </div>
+  </div>
+</main>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-title">⚡ Reserve Spot</div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-confirm" onclick="confirmReservation()">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// DATA
+const FLOORS = {
+  A: { rows: ['A', 'B', 'C', 'D'], cols: 10 },
+  B: { rows: ['A', 'B', 'C', 'D'], cols: 10 },
+  C: { rows: ['A', 'B', 'C'], cols: 8 }
+};
+
+const EV_SPOTS = new Set([
+  'A_A1','A_A2','A_C9','A_C10','A_D1',
+  'B_B1','B_B10','B_D5','B_D6',
+  'C_A7','C_A8','C_C1','C_C2'
+]);
+
+// Generate spot data
+const allSpots = {};
+const statuses = ['free','free','free','free','occupied','occupied','reserved'];
+
+function rnd(arr) { return arr[Math.floor(Math.random()*arr.length)]; }
+
+for (const [floor, config] of Object.entries(FLOORS)) {
+  for (const row of config.rows) {
+    for (let c = 1; c <= config.cols; c++) {
+      const id = `${floor}_${row}${c}`;
+      allSpots[id] = {
+        id, floor, row, col: c,
+        status: rnd(statuses),
+        ev: EV_SPOTS.has(id),
+        size: rnd(['Compact','Standard','Standard','Large']),
+        price: `$${(1.5 + Math.random()*2).toFixed(1)}/hr`,
+        duration: rnd(['—','1h 20m','2h 05m','45m','3h 10m'])
+      };
+    }
+  }
+}
+
+let selectedSpot = null;
+let pendingSpot = null;
+let currentFloor = 'A';
+let currentFilter = 'all';
+let searchQ = '';
+
+// RENDER MAP
+function renderMap() {
+  const area = document.getElementById('map-area');
+  area.innerHTML = '';
+  const config = FLOORS[currentFloor];
+
+  const floorDiv = document.createElement('div');
+  floorDiv.className = 'parking-floor';
+
+  config.rows.forEach((row, ri) => {
+    // Lane between rows
+    if (ri > 0 && ri % 2 === 0) {
+      const lane = document.createElement('div');
+      lane.style.display = 'flex';
+      lane.style.gap = '0.4rem';
+      lane.style.alignItems = 'center';
+      const lbl = document.createElement('div');
+      lbl.className = 'row-label';
+      lane.appendChild(lbl);
+      const driveLane = document.createElement('div');
+      driveLane.className = 'drive-lane';
+      driveLane.innerHTML = '<span class="drive-lane-text">→ → → DRIVE LANE → → →</span>';
+      driveLane.style.flex = '1';
+      lane.appendChild(driveLane);
+      floorDiv.appendChild(lane);
+    }
+
+    const rowDiv = document.createElement('div');
+    rowDiv.className = 'parking-row';
+
+    const rowLbl = document.createElement('div');
+    rowLbl.className = 'row-label';
+    rowLbl.textContent = row;
+    rowDiv.appendChild(rowLbl);
+
+    for (let c = 1; c <= config.cols; c++) {
+      const id = `${currentFloor}_${row}${c}`;
+      const spot = allSpots[id];
+
+      const el = document.createElement('div');
+      el.className = `spot ${spot.status}`;
+      if (selectedSpot && selectedSpot.id === id) el.classList.add('selected');
+
+      // Filter
+      let hide = false;
+      if (currentFilter === 'free' && spot.status !== 'free') hide = true;
+      if (currentFilter === 'ev' && !spot.ev) hide = true;
+      if (searchQ && !id.toLowerCase().includes(searchQ)) hide = true;
+      if (hide) { el.style.opacity = '0.15'; el.style.pointerEvents = 'none'; }
+
+      el.innerHTML = `
+        ${spot.ev ? `<div class="ev-badge">EV</div>` : ''}
+        <div class="spot-id">${row}${c}</div>
+        ${spot.status === 'occupied' ? '<div class="car-icon">🚗</div>' : ''}
+        ${spot.status === 'reserved' ? '<div class="car-icon" style="opacity:0.5">🚘</div>' : ''}
+        <div class="spot-indicator"></div>
+      `;
+
+      if (spot.status === 'free') {
+        el.onclick = () => selectSpot(id);
+      }
+
+      rowDiv.appendChild(el);
+
+      // Middle gap
+      if (c === Math.floor(config.cols / 2)) {
+        const gap = document.createElement('div');
+        gap.style.width = '20px';
+        rowDiv.appendChild(gap);
+      }
+    }
+
+    floorDiv.appendChild(rowDiv);
+  });
+
+  const floorLabelDiv = document.createElement('div');
+  floorLabelDiv.className = 'floor-label';
+  floorLabelDiv.textContent = `Floor ${currentFloor}`;
+  area.appendChild(floorLabelDiv);
+  area.appendChild(floorDiv);
+
+  updateStats();
+}
+
+function selectSpot(id) {
+  selectedSpot = allSpots[id];
+  renderMap();
+  renderSpotDetail();
+}
+
+function renderSpotDetail() {
+  const el = document.getElementById('spot-detail');
+  if (!selectedSpot) {
+    el.innerHTML = `<div class="no-selection"><span>🅿</span>Click on a free spot<br>to see details & reserve</div>`;
+    return;
+  }
+
+  const s = selectedSpot;
+  const statusClass = { free:'status-free', occupied:'status-occupied', reserved:'status-reserved' }[s.status];
+  const canReserve = s.status === 'free';
+
+  el.innerHTML = `
+    <div class="spot-info">
+      <div class="spot-info-header">
+        <div class="spot-number">${s.row}${s.col}</div>
+        <div class="spot-status-badge ${statusClass}">${s.status}</div>
+        ${s.ev ? '<div class="spot-status-badge status-free" style="margin-left:auto">⚡ EV</div>' : ''}
+      </div>
+      <div class="info-grid">
+        <div class="info-cell">
+          <div class="info-cell-label">Floor</div>
+          <div class="info-cell-val">${s.floor}</div>
+        </div>
+        <div class="info-cell">
+          <div class="info-cell-label">Size</div>
+          <div class="info-cell-val">${s.size}</div>
+        </div>
+        <div class="info-cell">
+          <div class="info-cell-label">Rate</div>
+          <div class="info-cell-val" style="color:var(--accent)">${s.price}</div>
+        </div>
+        <div class="info-cell">
+          <div class="info-cell-label">${s.status==='occupied'?'Duration':'Est. time'}</div>
+          <div class="info-cell-val">${s.duration}</div>
+        </div>
+      </div>
+      <button class="btn-reserve" ${canReserve?'':'disabled'} onclick="openModal()">
+        ${canReserve ? '[ Reserve This Spot ]' : '[ Unavailable ]'}
+      </button>
+    </div>
+  `;
+}
+
+// STATS
+function updateStats() {
+  let free=0, occ=0, res=0;
+  const floorCounts = {A:{f:0,t:0},B:{f:0,t:0},C:{f:0,t:0}};
+
+  for (const s of Object.values(allSpots)) {
+    if (s.status==='free') { free++; floorCounts[s.floor].f++; }
+    if (s.status==='occupied') occ++;
+    if (s.status==='reserved') res++;
+    floorCounts[s.floor].t++;
+  }
+
+  document.getElementById('hdr-free').textContent = free;
+  document.getElementById('hdr-occ').textContent = occ;
+  document.getElementById('hdr-rev').textContent = res;
+
+  for (const [floor, counts] of Object.entries(floorCounts)) {
+    const occPct = Math.round(((counts.t - counts.f) / counts.t) * 100);
+    document.getElementById(`occ-${floor.toLowerCase()}`).style.width = occPct + '%';
+    document.getElementById(`occ-${floor.toLowerCase()}-val`).textContent = occPct + '%';
+  }
+}
+
+// HOURLY CHART
+function renderChart() {
+  const chartArea = document.getElementById('chart-area');
+  const labelsArea = document.getElementById('chart-labels');
+  const hours = Array.from({length:12},(_,i)=> (7+i*1));
+  const values = [15,22,45,68,80,72,60,75,88,70,50,35];
+  const maxV = Math.max(...values);
+
+  chartArea.innerHTML = '';
+  labelsArea.innerHTML = '';
+
+  hours.forEach((h, i) => {
+    const bar = document.createElement('div');
+    bar.className = 'chart-bar';
+    bar.style.height = '0';
+    bar.title = `${h}:00 — ${values[i]}% occupied`;
+    chartArea.appendChild(bar);
+    setTimeout(() => { bar.style.height = (values[i]/maxV*100)+'%'; }, 100 + i*50);
+
+    const lbl = document.createElement('div');
+    lbl.className = 'chart-label';
+    lbl.textContent = h + 'h';
+    labelsArea.appendChild(lbl);
+  });
+}
+
+// ACTIVITY FEED
+const activityTypes = ['entry','exit','reserved'];
+const vehicles = ['KZ 001 ABC','KZ 345 MNO','KZ 789 XYZ','KZ 112 DEF','KZ 556 QRS','KZ 234 GHI'];
+const spotIds = () => {
+  const f = rnd(['A','B','C']);
+  const row = rnd(FLOORS[f].rows);
+  const col = Math.ceil(Math.random()*FLOORS[f].cols);
+  return `${f}-${row}${col}`;
+};
+
+function addActivity() {
+  const feed = document.getElementById('activity-feed');
+  const type = rnd(activityTypes);
+  const vehicle = rnd(vehicles);
+  const spot = spotIds();
+  const now = new Date();
+  const time = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+
+  const msgs = {
+    entry: `Vehicle <strong>${vehicle}</strong> entered spot ${spot}`,
+    exit: `Vehicle <strong>${vehicle}</strong> left spot ${spot}`,
+    reserved: `Spot ${spot} reserved for 30 min`
+  };
+
+  const item = document.createElement('div');
+  item.className = `activity-item ${type}`;
+  item.innerHTML = `
+    <div class="activity-dot"></div>
+    <div class="activity-text">${msgs[type]}</div>
+    <div class="activity-time">${time}</div>
+  `;
+
+  feed.insertBefore(item, feed.firstChild);
+  if (feed.children.length > 8) feed.removeChild(feed.lastChild);
+
+  // Occasionally change a spot's status
+  if (Math.random() > 0.7) {
+    const keys = Object.keys(allSpots);
+    const randomKey = keys[Math.floor(Math.random()*keys.length)];
+    if (type === 'exit') allSpots[randomKey].status = 'free';
+    if (type === 'entry') allSpots[randomKey].status = 'occupied';
+    renderMap();
+  }
+}
+
+// CLOCK
+function updateClock() {
+  const now = new Date();
+  document.getElementById('time-display').textContent =
+    now.toLocaleTimeString('en', {hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
+}
+
+// MODAL
+function openModal() {
+  if (!selectedSpot) return;
+  pendingSpot = selectedSpot;
+  const s = pendingSpot;
+  document.getElementById('modal-body').innerHTML = `
+    You are about to reserve spot <span class="modal-detail">${s.floor}-${s.row}${s.col}</span>
+    on Floor <span class="modal-detail">${s.floor}</span>.<br><br>
+    Rate: <span class="modal-detail">${s.price}</span> &nbsp;|&nbsp; Type: <span class="modal-detail">${s.size}${s.ev?' (EV Charging)':''}</span><br><br>
+    Reservation will be held for <span class="modal-detail">15 minutes</span>.
+  `;
+  document.getElementById('modal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('open');
+}
+
+function confirmReservation() {
+  closeModal();
+  if (pendingSpot) {
+    allSpots[pendingSpot.id].status = 'reserved';
+    showToast(`✓ Spot ${pendingSpot.floor}-${pendingSpot.row}${pendingSpot.col} reserved successfully`);
+    selectedSpot = null;
+    pendingSpot = null;
+    renderMap();
+    renderSpotDetail();
+    addActivity();
+  }
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+// CONTROLS
+function setFloor(floor, btn) {
+  currentFloor = floor;
+  document.getElementById('active-floor').textContent = floor;
+  document.querySelectorAll('#floor-btns .btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  selectedSpot = null;
+  renderMap();
+  renderSpotDetail();
+}
+
+function setFilter(filter, btn) {
+  currentFilter = filter;
+  document.querySelectorAll('.filter-group:last-of-type .btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderMap();
+}
+
+function searchSpot(val) {
+  searchQ = val.toLowerCase();
+  renderMap();
+}
+
+// INIT
+renderMap();
+renderChart();
+updateClock();
+setInterval(updateClock, 1000);
+setInterval(addActivity, 3000);
+
+// Initial feed
+for (let i=0;i<5;i++) setTimeout(addActivity, i*300);
+</script>
+</body>
+</html>
