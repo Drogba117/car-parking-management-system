@@ -1,31 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Park — Dashboard</title>
-
-  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
-
-  <link rel="stylesheet" href="style.css">
-
-  <style>
-    #dashboard {
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
-      position: relative;
-      z-index: 1;
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Park — Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+  #dashboard{
+    display:flex;
+    flex-direction:column;
+    min-height:100vh;
+    position:relative;
+    z-index:1
     }
-  </style>
+</style>
 </head>
-
 <body>
 
 <div id="dashboard">
 
-  <!-- header -->
-  <header class="topbar">
+  <!-- topbar -->
+  <div class="topbar">
     <div class="topbar-logo">Park</div>
 
     <nav class="floor-nav" id="floor-nav">
@@ -43,100 +39,132 @@
       <a href="history.html" class="nav-link">History</a>
 
       <div class="user-chip" id="user-chip" onclick="toggleDrop()">
-        <span id="chip-name">-</span>
-        <span id="chip-plate">-</span>
-
+        <span class="chip-name" id="chip-name">-</span>
+        <span class="chip-plate" id="chip-plate">-</span>
         <div class="user-drop" id="user-drop">
-          <div><b id="d-name">-</b> Driver</div>
-          <div><b id="d-phone">-</b> Phone</div>
-          <div><b id="d-plate">-</b> Plate</div>
-          <button onclick="signOut()">Sign out</button>
+          <div class="drop-row"><b id="d-name">-</b>Driver</div>
+          <div class="drop-row"><b id="d-phone">-</b>Phone</div>
+          <div class="drop-row"><b id="d-plate">-</b>Plate</div>
+          <button class="drop-out" onclick="signOut()">Sign out</button>
         </div>
       </div>
 
-      <div id="clock">-</div>
+      <div class="topbar-clock" id="clock">-</div>
     </div>
-  </header>
+  </div>
 
-  <!-- main -->
-  <main class="dash-body">
-
-    <!-- car card -->
-    <section class="car-card">
-      <div class="car-plate-big" id="cc-plate">-</div>
-
-      <div class="car-meta">
-        <div>
-          <span>Driver</span>
-          <span id="cc-name">-</span>
-        </div>
-        <div>
-          <span>Phone</span>
-          <span id="cc-phone">-</span>
-        </div>
+  <!-- car card -->
+  <div class="car-card">
+    <div class="car-plate-big" id="cc-plate">-</div>
+    <div class="car-meta">
+      <div class="car-meta-item">
+        <span class="car-meta-lbl">Driver</span>
+        <span class="car-meta-val" id="cc-name">-</span>
       </div>
-
-      <div id="my-spot-badge" style="display:none">
-        Reserved: <span id="my-spot-id">-</span>
+      <div class="car-meta-item">
+        <span class="car-meta-lbl">Phone</span>
+        <span class="car-meta-val" id="cc-phone">-</span>
       </div>
-    </section>
+    </div>
 
-    <!-- map -->
+    <div class="my-spot-badge" id="my-spot-badge" style="display:none">
+      <span>Reserved</span>
+      <span class="my-spot-id" id="my-spot-id">-</span>
+    </div>
+
+    <div class="avg-stats" id="avg-stats" style="display:none">
+      <div class="avg-item">
+        <div class="avg-val" id="avg-dur">-</div>
+        <div class="avg-lbl">Avg duration</div>
+      </div>
+      <div class="avg-item">
+        <div class="avg-val" id="avg-cost">-</div>
+        <div class="avg-lbl">Avg cost</div>
+      </div>
+      <div class="avg-item">
+        <div class="avg-val" id="total-trips">0</div>
+        <div class="avg-lbl">Total trips</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- map + sidebar -->
+  <div class="dash-body">
     <div class="map-wrap" id="map-wrap"></div>
 
-    <!-- sidebar -->
     <aside class="sidebar">
-
-      <!-- spot -->
       <div class="sb-panel">
-        <h3>Spot</h3>
+        <div class="sb-title">Spot</div>
         <div id="detail-pane">
-          <p>Select a free spot on the map.</p>
+          <div class="detail-empty">Select a free spot on the map.</div>
         </div>
       </div>
 
-      <!-- occupancy -->
       <div class="sb-panel">
-        <h3>Occupancy</h3>
-
-        <div class="occ-row">
-          <span>A</span>
-          <div class="occ-bar"><div id="oc-a"></div></div>
-          <span id="oc-a-p">-</span>
+        <div class="sb-title">Occupancy</div>
+        <div class="occ-r">
+          <div class="occ-fl">A</div>
+          <div class="occ-bar">
+            <div class="occ-fill" id="oc-a"></div>
+          </div>
+          <div class="occ-pct" id="oc-a-p">-</div>
         </div>
-
-        <div class="occ-row">
-          <span>B</span>
-          <div class="occ-bar"><div id="oc-b"></div></div>
-          <span id="oc-b-p">-</span>
+        <div class="occ-r">
+          <div class="occ-fl">B</div>
+          <div class="occ-bar">
+            <div class="occ-fill" id="oc-b"></div>
+          </div>
+          <div class="occ-pct" id="oc-b-p">-</div>
         </div>
-
-        <div class="occ-row">
-          <span>C</span>
-          <div class="occ-bar"><div id="oc-c"></div></div>
-          <span id="oc-c-p">-</span>
+        <div class="occ-r">
+          <div class="occ-fl">C</div>
+          <div class="occ-bar">
+            <div class="occ-fill" id="oc-c"></div>
+          </div>
+          <div class="occ-pct" id="oc-c-p">-</div>
+        </div>
+        <div class="legend">
+          <div class="leg">
+            <div class="leg-box free"></div>Free</div>
+          <div class="leg">
+            <div class="leg-box occupied"></div>Busy</div>
+          <div class="leg">
+            <div class="leg-box reserved"></div>Reserved</div>
         </div>
       </div>
 
+      <div class="sb-tabs">
+        <button class="sb-tab active" onclick="switchTab('activity',this)">Activity</button>
+        <button class="sb-tab" onclick="switchTab('history',this)">History</button>
+      </div>
+
+      <div class="tab-panel show" id="tab-activity">
+        <div id="feed"></div>
+      </div>
+      <div class="tab-panel" id="tab-history">
+        <div id="history-list">
+          <div class="hist-empty">No trips yet.</div>
+        </div>
+      </div>
     </aside>
-
-  </main>
-
+  </div>
 </div>
 
+<!-- modal -->
 <div class="overlay" id="overlay">
   <div class="modal">
-    <h2>Reserve</h2>
-    <div id="modal-b"></div>
-
-    <div>
-      <button onclick="closeModal()">Cancel</button>
-      <button onclick="confirmRes()">Confirm</button>
+    <div class="modal-t">Reserve</div>
+    <div class="modal-b" id="modal-b"></div>
+    <div class="modal-acts">
+      <button class="bsm s" onclick="">Cancel</button>
+      <button class="bsm p" onclick="">Confirm</button>
     </div>
   </div>
 </div>
 
-<div id="toast"></div>
+<div class="toast" id="toast"></div>
 
+<script src="parking.js"></script>
+<script src="dashboard.js"></script>
 </body>
 </html>
