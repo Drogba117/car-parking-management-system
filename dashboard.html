@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Park — Dashboard</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css">
+
+  <style>
+    #dashboard {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      position: relative;
+      z-index: 1;
+    }
+  </style>
+</head>
+
+<body>
+
+<div id="dashboard">
+
+  <!-- header -->
+  <header class="topbar">
+    <div class="topbar-logo">Park</div>
+
+    <nav class="floor-nav" id="floor-nav">
+      <button class="floor-btn active" data-floor="A">Level A</button>
+      <button class="floor-btn" data-floor="B">Level B</button>
+      <button class="floor-btn" data-floor="C">Level C</button>
+    </nav>
+
+    <div class="topbar-right">
+      <div class="avail-count">
+        <span class="avail-n" id="n-free">-</span>
+        <span class="avail-l">available</span>
+      </div>
+
+      <a href="history.html" class="nav-link">History</a>
+
+      <div class="user-chip" id="user-chip" onclick="toggleDrop()">
+        <span id="chip-name">-</span>
+        <span id="chip-plate">-</span>
+
+        <div class="user-drop" id="user-drop">
+          <div><b id="d-name">-</b> Driver</div>
+          <div><b id="d-phone">-</b> Phone</div>
+          <div><b id="d-plate">-</b> Plate</div>
+          <button onclick="signOut()">Sign out</button>
+        </div>
+      </div>
+
+      <div id="clock">-</div>
+    </div>
+  </header>
+
+  <!-- main -->
+  <main class="dash-body">
+
+    <!-- car card -->
+    <section class="car-card">
+      <div class="car-plate-big" id="cc-plate">-</div>
+
+      <div class="car-meta">
+        <div>
+          <span>Driver</span>
+          <span id="cc-name">-</span>
+        </div>
+        <div>
+          <span>Phone</span>
+          <span id="cc-phone">-</span>
+        </div>
+      </div>
+
+      <div id="my-spot-badge" style="display:none">
+        Reserved: <span id="my-spot-id">-</span>
+      </div>
+    </section>
+
+    <!-- map -->
+    <div class="map-wrap" id="map-wrap"></div>
+
+    <!-- sidebar -->
+    <aside class="sidebar">
+
+      <!-- spot -->
+      <div class="sb-panel">
+        <h3>Spot</h3>
+        <div id="detail-pane">
+          <p>Select a free spot on the map.</p>
+        </div>
+      </div>
+
+      <!-- occupancy -->
+      <div class="sb-panel">
+        <h3>Occupancy</h3>
+
+        <div class="occ-row">
+          <span>A</span>
+          <div class="occ-bar"><div id="oc-a"></div></div>
+          <span id="oc-a-p">-</span>
+        </div>
+
+        <div class="occ-row">
+          <span>B</span>
+          <div class="occ-bar"><div id="oc-b"></div></div>
+          <span id="oc-b-p">-</span>
+        </div>
+
+        <div class="occ-row">
+          <span>C</span>
+          <div class="occ-bar"><div id="oc-c"></div></div>
+          <span id="oc-c-p">-</span>
+        </div>
+      </div>
+
+    </aside>
+
+  </main>
+
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <h2>Reserve</h2>
+    <div id="modal-b"></div>
+
+    <div>
+      <button onclick="closeModal()">Cancel</button>
+      <button onclick="confirmRes()">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+</body>
+</html>
