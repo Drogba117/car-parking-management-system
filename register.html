@@ -1,61 +1,166 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Park-Register</title>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
-
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Park — Register</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="reg-screen">
-    <div class="reg-card">
-      <div class="reg-wordmark">Park</div>
 
-      <div class="progress">
-        <div class="prog-dot active" id="p1"></div>
-        <div class="prog-dot" id="p2"></div>
-        <div class="prog-dot" id="p3"></div>
+<div class="reg-screen">
+  <div class="reg-card">
+    <div class="reg-wordmark">Park</div>
+
+    <div class="progress">
+      <div class="prog-dot active" id="p1"></div>
+      <div class="prog-dot" id="p2"></div>
+      <div class="prog-dot" id="p3"></div>
+    </div>
+
+    <!-- name -->
+    <div class="reg-step show" id="rs1">
+      <div class="step-heading">Your name</div>
+      <div class="step-hint">Enter your full name to get started.</div>
+      <div class="f">
+        <label>Full name</label>
+        <input id="i-name" type="text" placeholder="Name Surname" autocomplete="off">
+        <div class="f-err" id="e-name"></div>
       </div>
+      <button class="btn-main" onclick="">Continue -></button>
+    </div>
 
-      <!-- name -->
-      <div class="reg-step show" id="rs1">
-        <div class="step-heading">Your name</div>
-        <div class="step-hint">Enter your full name to get started</div>
-        <div class="f">
-          <label">Full Name</label>
-          <input type="text" id="i-name" placeholder="Name Surname" autocomplete="off">
-          <div class="f-err" id="e-name"></div>
-
-        </div>
-        <button class="btn-main" onclick="">Continue -></button>
+    <!--phone -->
+    <div class="reg-step" id="rs2">
+      <div class="step-heading">Phone number</div>
+      <div class="step-hint">We'll use this to identify your account.</div>
+      <div class="f">
+        <label>Phone</label>
+        <input id="i-phone" type="tel" placeholder="+7 777 777 77 77" autocomplete="off">
+        <div class="f-err" id="e-phone"></div>
       </div>
+      <button class="btn-main" onclick="">Continue -></button>
+    </div>
 
-      <!-- phone -->
-        <div class="reg-step" id="rs2">
-        <div class="step-heading">Phone Number</div>
-        <div class="step-hint">We will use this to identify your account.</div>
-        <div class="f">
-          <label>Phone</label>
-          <input type="tel" id="i-phone" placeholder="+7 777 777 77 77" autocomplete="off">
-          <div class="f-err" id="e-phone"></div>
-        </div>
-        <button class="btn-main" onclick="">Continue -></button>
-        </div>
-
-        <!-- number of car -->
-        <div class="reg-step" id="rs3">
-          <div class="step-heading">License Plate</div>
-          <div class="step-hint">Enter your vehicle's plate number.</div>
-          <div class="f">
-            <label>Plate Number</label>
-            <input type="text" id="i-plate" placeholder="111 LLL 11" autocomplete="off" oninput="this.value=this.value.toUpperCase()">
-            <div class="f-err" id="e-plate"></div>
-          </div>
-          <button class="btn-main" onclick="">Go to Parking -></button>
-
-        </div>
+    <!-- Step 3 — plate -->
+    <div class="reg-step" id="rs3">
+      <div class="step-heading">License plate</div>
+      <div class="step-hint">Enter your vehicle's plate number.</div>
+      <div class="f">
+        <label>Plate number</label>
+        <input id="i-plate" type="text" placeholder="111 LLL 11" autocomplete="off"
+          oninput="this.value=this.value.toUpperCase()">
+        <div class="f-err" id="e-plate"></div>
+      </div>
+      <button class="btn-main" onclick="">Go to parking -></button>
     </div>
   </div>
+</div>
+
+<script>
+let step = 1;
+
+// если уже зарегался, сразу дашборд
+let savedUser = localStorage.getItem('park_user');
+
+if (savedUser) {
+  window.location.href = 'dashboard.html';
+}
+
+
+function go(s) {
+
+  // name surname
+  if (s === 1) {
+    let name = document.getElementById('i-name').value.trim();
+
+    if (name === "") {
+      showError('i-name', 'e-name', 'Enter your name');
+      return;
+    }
+
+    step = 2;
+    showStep(2);
+  }
+
+  // phone num
+  else if (s === 2) {
+    let phone = document.getElementById('i-phone').value.trim();
+    let digits = phone.replace(/\D/g, '');
+
+    if (digits.length < 7) {
+      showError('i-phone', 'e-phone', 'Enter a valid phone number');
+      return;
+    }
+
+    step = 3;
+    showStep(3);
+  }
+
+  // nomer mashiny
+  else if (s === 3) {
+    let plate = document.getElementById('i-plate').value.trim();
+
+    if (plate === "") {
+      showError('i-plate', 'e-plate', 'Enter your plate number');
+      return;
+    }
+
+    let user = {
+      name: document.getElementById('i-name').value.trim(),
+      phone: document.getElementById('i-phone').value.trim(),
+      plate: plate
+    };
+
+    localStorage.setItem('park_user', JSON.stringify(user));
+    localStorage.removeItem('park_history');
+
+    window.location.href = 'dashboard.html';
+  }
+}
+
+// pokaz shaga
+function showStep(n) {
+  for (let i = 1; i <= 3; i++) {
+    let stepBlock = document.getElementById('rs' + i);
+    let dot = document.getElementById('p' + i);
+
+    if (i === n) {
+      stepBlock.classList.add('show');
+    } else {
+      stepBlock.classList.remove('show');
+    }
+
+    if (i <= n) {
+      dot.classList.add('active');
+    } else {
+      dot.classList.remove('active');
+    }
+  }
+}
+
+// errorr
+function showError(inputId, errorId, message) {
+  let input = document.getElementById(inputId);
+  let error = document.getElementById(errorId);
+
+  error.textContent = message;
+  input.classList.add('shake');
+
+  setTimeout(function () {
+    input.classList.remove('shake');
+    error.textContent = "";
+  }, 1400);
+}
+
+// enter
+document.addEventListener('keydown', function (e) {
+  if (e.key === 'Enter') {
+    go(step);
+  }
+});
+</script>
+
 </body>
 </html>
