@@ -28,7 +28,7 @@
         <input id="i-name" type="text" placeholder="Name Surname" autocomplete="off">
         <div class="f-err" id="e-name"></div>
       </div>
-      <button class="btn-main" onclick="">Continue -></button>
+      <button class="btn-main" onclick="go(1)">Continue -></button>
     </div>
 
     <!--phone -->
@@ -40,7 +40,7 @@
         <input id="i-phone" type="tel" placeholder="+7 777 777 77 77" autocomplete="off">
         <div class="f-err" id="e-phone"></div>
       </div>
-      <button class="btn-main" onclick="">Continue -></button>
+      <button class="btn-main" onclick="go(2)">Continue -></button>
     </div>
 
     <!-- Step 3 — plate -->
@@ -53,7 +53,7 @@
           oninput="this.value=this.value.toUpperCase()">
         <div class="f-err" id="e-plate"></div>
       </div>
-      <button class="btn-main" onclick="">Go to parking -></button>
+      <button class="btn-main" onclick="go(3)">Go to parking -></button>
     </div>
   </div>
 </div>
@@ -155,6 +155,7 @@ function showError(inputId, errorId, message) {
 }
 
 // enter
+
 document.addEventListener('keydown', function (e) {
   if (e.key === 'Enter') {
     go(step);
