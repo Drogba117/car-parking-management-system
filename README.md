@@ -64,7 +64,7 @@ cd car-parking-management-system
 
 
 ## Screenshots
-![dash](image.png)
+![dash](assets/image.png)
 
 
 ## Improvements Needed
