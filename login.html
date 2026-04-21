@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Park — Sign In</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="reg-screen">
+  <div class="reg-card">
+    <div class="reg-wordmark">Park</div>
+
+    <div class="step-heading">Welcome back</div>
+    <div class="step-hint">Enter your phone number to sign in.</div>
+
+    <div class="f">
+      <label>Phone number</label>
+      <input id="i-phone" type="tel" placeholder="+7 700 000 00 00" autocomplete="off">
+      <div class="f-err" id="e-phone"></div>
+    </div>
+
+    <button class="btn-main" onclick="login()">Sign in →</button>
+
+    <div style="margin-top:1.4rem; text-align:center; font-size:0.75rem; color:var(--mid)">
+      No account?
+      <a href="register.html" style="color:var(--ink); text-underline-offset:3px">
+        Register
+      </a>
+    </div>
+  </div>
+</div>
+
+<script>
+
+if (localStorage.getItem('park_user')) {
+  window.location.href = 'dashboard.html';
+}
+
+function login() {
+  const phone = document.getElementById('i-phone').value.trim();
+
+  if (phone.replace(/\D/g, '').length < 7) {
+    showErr('Enter a valid phone number');
+    return;
+  }
+
+  const all = JSON.parse(localStorage.getItem('park_all_users') || '{}');
+  const user = all[phone];
+
+  if (!user) {
+    showErr('No account found. Please register first.');
+    return;
+  }
+
+  localStorage.setItem('park_user', JSON.stringify(user));
+  window.location.href = 'dashboard.html';
+}
+
+function showErr(msg) {
+  const inp = document.getElementById('i-phone');
+
+  document.getElementById('e-phone').textContent = msg;
+  inp.classList.add('shake');
+
+  setTimeout(() => {
+    inp.classList.remove('shake');
+    document.getElementById('e-phone').textContent = '';
+  }, 2000);
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter') login();
+});
+
+</script>
+
+</body>
+</html>

@@ -54,6 +54,10 @@
         <div class="f-err" id="e-plate"></div>
       </div>
       <button class="btn-main" onclick="go(3)">Go to parking -></button>
+
+    </div>
+    <div style="margin-top: 1.4rem; text-align:center; font-size: 0.75rem; color:var(--mid)">
+      Already registered? <a href="login.html" style="color:var(--ink); text-underline-offset:3px">Sign in</a>
     </div>
   </div>
 </div>
@@ -115,6 +119,10 @@ function go(s) {
 
     localStorage.setItem('park_user', JSON.stringify(user));
     localStorage.removeItem('park_history');
+    
+    let all = JSON.parse(localStorage.getItem('park_all_users') || '{}');
+    all[user.phone] = user;
+    localStorage.setItem('park_all_users', JSON.stringify(all));
 
     window.location.href = 'dashboard.html';
   }
