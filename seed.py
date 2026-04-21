@@ -9,11 +9,13 @@ FLOORS = {
 }
 EV_SPOTS = {"A_A1","A_A2","A_D9","A_D10","B_B1","B_C10","C_A7","C_A8"}
 TYPES    = ["Compact","Standard","Standard","Large"]
-STATUSES = ["free","free","free","occupied","occupied","reserved"]
 
 
 def seed_spots(db: Session):
     if db.query(ParkingSpot).count() > 0:
+        # Бар споттардың бәрін free-ге қайтар (reserved/occupied тазала)
+        db.query(ParkingSpot).update({"status": "free"})
+        db.commit()
         return
     spots = []
     for floor, cfg in FLOORS.items():
@@ -25,7 +27,7 @@ def seed_spots(db: Session):
                     floor     = floor,
                     row       = row,
                     col       = col,
-                    status    = random.choice(STATUSES),
+                    status    = "free",
                     ev        = sid in EV_SPOTS,
                     spot_type = random.choice(TYPES),
                     rate      = f"${round(1.5 + random.random()*1.5, 1)}/hr",

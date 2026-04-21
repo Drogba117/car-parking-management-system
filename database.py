@@ -1,10 +1,16 @@
+import os
 from sqlalchemy import create_engine, Column, Integer, String, Float, Boolean, DateTime, ForeignKey
 from sqlalchemy.orm import declarative_base, sessionmaker, relationship
 from datetime import datetime
 
-DATABASE_URL = "sqlite:///./park.db"
+# Neon PostgreSQL connection string
+# Set DATABASE_URL env variable:
 
-engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+from dotenv import load_dotenv
+load_dotenv()
+DATABASE_URL = os.environ["DATABASE_URL"]
+
+engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
@@ -23,11 +29,11 @@ class User(Base):
 
 class ParkingSpot(Base):
     __tablename__ = "parking_spots"
-    id        = Column(String, primary_key=True)   # "A_A1"
+    id        = Column(String, primary_key=True)
     floor     = Column(String(1), nullable=False)
     row       = Column(String(1), nullable=False)
     col       = Column(Integer,   nullable=False)
-    status    = Column(String,    default="free")   # free | occupied | reserved
+    status    = Column(String,    default="free")
     ev        = Column(Boolean,   default=False)
     spot_type = Column(String,    default="Standard")
     rate      = Column(String,    default="$2.0/hr")

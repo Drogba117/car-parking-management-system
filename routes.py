@@ -9,7 +9,7 @@ from app.auth import create_token, get_current_user
 
 router = APIRouter()
 
-#Pydantic schemas ─
+#Pydantic schemas
 
 class RegisterBody(BaseModel):
     name:  str

@@ -7,7 +7,7 @@ from app.database import get_db, User
 
 SECRET_KEY  = "park-abc123"
 ALGORITHM   = "HS256"
-EXPIRE_DAYS = 7
+EXPIRE_DAYS = 1
 
 bearer = HTTPBearer(auto_error=False)
 
