@@ -31,7 +31,7 @@ for (let floor in FLOORS) {
         floor: floor,
         row: row,
         col: col,
-        status: random(['free','free','free','occupied','occupied','reserved']),
+        status: 'free',
         ev: EV_SPOTS.includes(id),
         type: random(['Compact','Standard','Standard','Large']),
         rate: "$" + (1.5 + Math.random() * 1.5).toFixed(1) + "/hr"
