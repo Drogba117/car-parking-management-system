@@ -184,5 +184,4 @@ renderDetail();
 renderSidebarHistory();
 updateAvgStats();
 startClock();
-// for (let i = 0; i < 4; i++) setTimeout(autoFeed, i*200);
-// setInterval(autoFeed, 4000);
+
