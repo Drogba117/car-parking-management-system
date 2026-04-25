@@ -9,10 +9,10 @@ from app.auth import create_token, get_current_user
 
 router = APIRouter()
 
-#Pydantic schemas
+#Pydantic схемалар
 
 class RegisterBody(BaseModel):
-    name:  str
+    name: str
     phone: str
     plate: str
 
@@ -20,58 +20,56 @@ class LoginBody(BaseModel):
     phone: str
 
 class UserOut(BaseModel):
-    id:    int
-    name:  str
+    id: int
+    name: str
     phone: str
     plate: str
     model_config = {"from_attributes": True}
 
 class TokenOut(BaseModel):
     access_token: str
-    token_type:   str = "bearer"
-    user:         UserOut
+    token_type: str = "bearer"
+    user: UserOut
 
 class SpotOut(BaseModel):
-    id:        str
-    floor:     str
-    row:       str
-    col:       int
-    status:    str
-    ev:        bool
+    id: str
+    floor: str
+    row: str
+    col: int
+    status: str
+    ev: bool
     spot_type: str
-    rate:      str
+    rate: str
     model_config = {"from_attributes": True}
 
 class ResOut(BaseModel):
-    id:         int
-    spot_id:    str
+    id: int
+    spot_id: str
     started_at: datetime
     model_config = {"from_attributes": True}
 
 class TripOut(BaseModel):
-    id:           int
-    spot_label:   str
-    floor:        str
-    spot_type:    str
-    ev:           bool
-    rate:         str
+    id: int
+    spot_label: str
+    floor: str
+    spot_type: str
+    ev: bool
+    rate: str
     duration_min: int
-    cost:         float
-    ended_at:     datetime
+    cost: float
+    ended_at: datetime
     model_config = {"from_attributes": True}
 
 class FloorOcc(BaseModel):
-    floor:       str
-    total:       int
-    free:        int
+    floor: str
+    total: int
+    free: int
     pct_occupied: int
 
 class OccOut(BaseModel):
     free_total: int
-    floors:     list[FloorOcc]
-
-
-# AUTH 
+    floors: list[FloorOcc]
+ 
 
 @router.post("/api/register", response_model=TokenOut)
 def register(body: RegisterBody, db: Session = Depends(get_db)):
@@ -92,8 +90,6 @@ def login(body: LoginBody, db: Session = Depends(get_db)):
 def me(current: User = Depends(get_current_user)):
     return current
 
-
-# Орындар Spots
 
 @router.get("/api/spots", response_model=list[SpotOut])
 def get_spots(
@@ -170,8 +166,6 @@ def release(spot_id: str, db: Session = Depends(get_db), current: User = Depends
     db.commit(); db.refresh(trip)
     return trip
 
-
-# Trips
 
 @router.get("/api/trips", response_model=list[TripOut])
 def trips(db: Session = Depends(get_db), current: User = Depends(get_current_user)):

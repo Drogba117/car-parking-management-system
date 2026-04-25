@@ -5,8 +5,8 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 from app.database import get_db, User
 
-SECRET_KEY  = "park-abc123"
-ALGORITHM   = "HS256"
+SECRET_KEY = "park-abc123"
+ALGORITHM = "HS256"
 EXPIRE_DAYS = 1
 
 bearer = HTTPBearer(auto_error=False)
