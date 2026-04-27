@@ -42,7 +42,7 @@
         <div class="stat-lbl">Total trips</div>
       </div>
       <div class="stat-cell">
-        <div class="stat-val" id="st-cost">$0</div>
+        <div class="stat-val" id="st-cost">0 t</div>
         <div class="stat-lbl">Total spent</div>
       </div>
       <div class="stat-cell">
@@ -124,9 +124,9 @@ if (tripHistory.length > 0) {
   let avgCost = (totalCost / tripHistory.length).toFixed(2);
 
   document.getElementById('st-trips').textContent = tripHistory.length;
-  document.getElementById('st-cost').textContent = "$" + totalCost.toFixed(2);
+  document.getElementById('st-cost').textContent = totalCost.toFixed(2) + "t";
   document.getElementById('st-avg-dur').textContent = formatDur(avgMin);
-  document.getElementById('st-avg-cost').textContent = "$" + avgCost;
+  document.getElementById('st-avg-cost').textContent = avgCost + " t";
 
   document.getElementById('stats-row').style.display = "flex";
 
