@@ -34,7 +34,7 @@ for (let floor in FLOORS) {
         status: 'free',
         ev: EV_SPOTS.includes(id),
         type: random(['Compact','Standard','Standard','Large']),
-        rate: "$" + (1.5 + Math.random() * 1.5).toFixed(1) + "/hr"
+        rate: "₸500/hr"
       };
     }
   }
@@ -269,7 +269,6 @@ function switchTab(name, btn) {
   document.getElementById("tab-" + name).classList.add('show');
 }
 
-// changing floors
 document.getElementById('floor-nav').addEventListener('click', function (e) {
   let btn = e.target.closest('.floor-btn');
   if (!btn) return;
@@ -287,4 +286,3 @@ document.getElementById('floor-nav').addEventListener('click', function (e) {
   renderDetail();
 });
 
-// хззз работаетт
