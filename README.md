@@ -118,3 +118,22 @@ When a user ends their session, the backend calculates the duration and the tota
 
 
 ---
+
+
+## Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/Drogba117/car-parking-management-system.git
+
+# Navigate to project folder
+cd car-parking-management-system
+
+# Install dependencies
+pip install fastapi uvicorn sqlalchemy python-jose[cryptography] passlib
+
+# Initialize database
+python -m app.seed
+
+# Run backend server
+uvicorn app.main:app --reload
