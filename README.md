@@ -1,86 +1,120 @@
-# Car Parking Management System
+# Park App: Smart Parking Management System
 
-A simple web-based parking management system built using HTML, CSS, and JavaScript.
+## 230103118, 230103249, 230103135, 230103302
+
+
+
+Park App is a full-stack solution designed to modernize urban parking management. By combining a high-performance FastAPI backend with an intuitive HTML5/JS frontend, the application streamlines the process of finding, reserving, and paying for parking spots.
+
+
+
+
+
+
+
+---
+
 
 
 ## Problem Statement
 
-Managing parking manually can be inefficient and confusing. This project provides a simple interface to manage parking slots, track vehicles, and view parking history.
+Traditional parking management is often manual and inefficient. Drivers face frustration searching for available spots—particularly specialized spaces like Electric Vehicle (EV) charging stations—while lot operators struggle to track occupancy and calculate accurate billing for varying durations.
 
 
-## Features
 
-* Register vehicles into the parking system
-* View parking dashboard
-* Track parking history
-* Simple and user-friendly interface
+**Park App solves this by:**
 
+* **Real-Time Visibility:** Providing a digital map of spot availability filtered by floor.
 
-## Tech Stack
+* **Smart Reservations:** Preventing "spot-stealing" through a secure, JWT-backed reservation system.
 
-* HTML
-* CSS
-* JavaScript
+* **Automated Billing:** Eliminating manual errors by calculating costs based on precise timestamps and specific spot rates.
 
 
-## Project Structure
 
-```
-/project-root
- ├── src/
- │    ├── dashboard.html
- │    ├── dashboard.js
- │    ├── history.html
- │    ├── register.html
- │    ├── parking.js
- │    ├── style.css
- │
- ├── README.md
-```
+---
 
 
-## Installation
 
-1. Clone the repository:
-
-```bash
-git clone https://github.com/Drogba117/car-parking-management-system.git
-```
-
-2. Open the project folder:
-
-```bash
-cd car-parking-management-system
-```
-
-3. Open any HTML file (e.g. dashboard.html) in your browser
+## Tech Specs & Stack
 
 
-## Usage
 
-* Open `register.html` to add a vehicle
-* Open `dashboard.html` to view parking status
-* Open `history.html` to see parking records
+### Backend (API)
 
+* **Language:** Python 3.9+
 
-## Screenshots
-![dash](assets/image.png)
+* **Framework:** FastAPI (Asynchronous, high-performance)
 
+* **Database:** SQLite with SQLAlchemy ORM for relational data management.
 
-## Improvements Needed
+* **Security:** JWT (JSON Web Tokens) for stateless, secure user sessions.
 
-* Add backend (FASTAPI / database)
-* Add authentication system
-* Improve UI/UX
-* Add validation and error handling
+* **Validation:** Pydantic for robust data integrity and error handling.
 
 
-## Notes
 
-This is a frontend-based academic project for learning purposes.
+### Frontend
+
+* **Languages:** HTML5, CSS3, and Vanilla JavaScript.
+
+* **Deployment:** Vercel.
+
+* **Features:** Dynamic DOM manipulation for real-time spot status updates and LocalStorage integration for persistent user login.
 
 
-## Author
 
-Gani Toremuratov
+---
 
+
+
+
+
+
+
+
+## How It Works
+
+
+
+### 1. Discovery and Filtering
+
+The frontend communicates with the `/api/spots` endpoint to visually render the parking lot. Users can filter by floor to find available Standard or EV spots instantly.
+
+
+
+### 2. Secure Reservation
+
+Once a user selects a "free" spot, the system:
+
+* Validates the user's identity via JWT.
+
+* Updates the spot status to "reserved" in the database.
+
+* Stores a timestamped reservation record to track the start of the session.
+
+
+
+### 3. Automated Checkout & History
+
+When a user ends their session, the backend calculates the duration and the total cost (Rate × Minutes). The spot is then returned to "free" status, and the session is archived in the user's **Trip History** for future reference.
+
+
+
+---
+
+
+
+### Core API Endpoints
+
+| Method | Endpoint | Description | Auth Required |
+| :--- | :--- | :--- | :--- |
+| POST | /api/auth/register | Register a new user and license plate | No |
+| POST | /api/auth/login | Authenticate and receive access token | No |
+| GET | /api/spots | View all spots (Optional floor filter) | No |
+| POST | /api/spots/{id}/reserve | Reserve a specific parking spot | Yes |
+| DELETE | /api/reservations/mine | End session and generate final bill | Yes |
+| GET | /api/history | View list of all past parking trips | Yes |
+
+
+---
