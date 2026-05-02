@@ -60,3 +60,8 @@ python -m app.seed
 
 # Run backend server
 uvicorn app.main:app --reload
+## id of the students
+230103135
+230103249
+230103302
+
